@@ -12,7 +12,7 @@ n_embed = 210
 n_head = 30
 dropout = 0.1
 n_layers = 10
-max_iter = 100000
+max_iter = 10000
 eval_interval = 500
 learning_rate = 3e-4
 eval_iters = 30
@@ -183,7 +183,7 @@ class BigramLanguageModel(nn.Module):
             B, T, C = logits.shape
             logits = logits.view(B*T, C)
             targets = targets.view(B*T)
-            loss = 1000.0*F.cross_entropy(logits, targets)
+            loss = F.cross_entropy(logits, targets)
 
         return logits, loss
     
