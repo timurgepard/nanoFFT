@@ -83,14 +83,6 @@ def estimate_loss():
     return out
 
 
-class Spike(nn.Module):
-
-    def __init__(self, f_in):
-        super().__init__()
-        self.norm = nn.LayerNorm(f_in)
-    def forward(self, x):
-        x = self.norm(x)
-        return (x>0) * x * torch.tanh(x)
 
 
 class FeedForward(nn.Module):
