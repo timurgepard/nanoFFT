@@ -128,7 +128,7 @@ class FourierTransform(nn.Module):
         B,T,E = input.shape
         x = self.value(input)
         x =x.reshape(B, E, T)
-        x = nn.functional.linear(x, self.tril_W[:T,:T] * self.fft.weight, self.fft.bias)
+        x = nn.functional.linear(x, self.tril_W[:T,:T] * self.fft.weight[:T,:T], None)
         x = x.reshape(B, T, E)
         return self.project(x)
 
