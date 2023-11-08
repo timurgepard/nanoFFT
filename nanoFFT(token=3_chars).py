@@ -7,7 +7,7 @@ import random
 
 
 batch_size = 64
-time_intervals = 256
+time_intervals = 128
 n_embed = 150
 n_head = 15
 dropout = 0.1
