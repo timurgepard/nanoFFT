@@ -16,7 +16,7 @@ max_iter = 100000
 eval_interval = 500
 learning_rate = 3e-4
 eval_iters = 30
-gamma = 1.0
+
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
