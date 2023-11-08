@@ -8,10 +8,10 @@ import random
 
 batch_size = 64
 time_intervals = 256
-n_embed = 210
-n_head = 30
-dropout = 0.2
-n_layers = 10
+n_embed = 150
+n_head = 15
+dropout = 0.1
+n_layers = 15
 max_iter = 100000
 eval_interval = 500
 learning_rate = 3e-4
