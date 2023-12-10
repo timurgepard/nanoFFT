@@ -73,14 +73,9 @@ class BigramLanguageModel(nn.Module):
 
         self.blocks = nn.Sequential(*[Block(time_intervals, n_embed, n_head, tri_W.detach()) for _ in range(n_layers)])
 
-        
         self.ln_out = nn.LayerNorm(n_embed)
-        
         self.linear_head = nn.Linear(n_embed, vocab_size)
-
         self.time_intervals = time_intervals
-
-        self.cdist = torch.distributions.categorical
 
 
 
@@ -88,7 +83,6 @@ class BigramLanguageModel(nn.Module):
         
         B, T = idx.shape
 
-            
         tok_emb = self.token_embedding_table(idx) # B, T, E
         pos_emb = self.position_embedding_table(torch.arange(T, device=self.device))
 
