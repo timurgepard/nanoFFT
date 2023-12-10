@@ -1,6 +1,6 @@
 import torch
 import random
-from nanoFFT import BigramLanguageModel
+from fft import BigramLanguageModel
 import pickle
 
 torch.manual_seed(1337)
