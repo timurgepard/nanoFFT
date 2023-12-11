@@ -14,7 +14,6 @@ learning_rate = 3e-5
 eval_iters = 10
 
 
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
 
