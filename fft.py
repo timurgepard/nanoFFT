@@ -61,7 +61,7 @@ class BigramLanguageModel(nn.Module):
         super().__init__()
         self.device = device
         self.token_embedding_table = nn.Embedding(vocab_size, vocab_embed)
-        self.position_embedding_table = nn.Embedding(time_intervals, vocab_embed)
+        #self.position_embedding_table = nn.Embedding(time_intervals, vocab_embed)
 
         self.ln_in = nn.LayerNorm(vocab_embed)
         self.uniform = nn.Linear(vocab_embed, n_embed)
@@ -87,10 +87,9 @@ class BigramLanguageModel(nn.Module):
         B, T = idx.shape
 
             
-        tok_emb = self.token_embedding_table(idx) # B, T, E
-        pos_emb = self.position_embedding_table(torch.arange(T, device=self.device))
-
-        x = tok_emb + pos_emb
+        x = self.token_embedding_table(idx) # B, T, E
+        #pos_emb = self.position_embedding_table(torch.arange(T, device=self.device))
+        #x = tok_emb + pos_emb
 
         x = self.uniform(self.ln_in(x))
 
