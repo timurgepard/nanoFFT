@@ -7,11 +7,12 @@ torch.manual_seed(1337)
 scaler = torch.cuda.amp.GradScaler()
 
 batch_size = 64
-time_intervals = 384
+time_intervals = 300
 max_iter = 1000000
 eval_interval = 500
 learning_rate = 3e-5
 eval_iters = 10
+
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
