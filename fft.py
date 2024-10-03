@@ -29,7 +29,7 @@ class Sine(jit.ScriptModule):
         return torch.sin(x)
 
 
-class Block(nn.Module):
+class Block(jit.ScriptModule):
     def __init__(self, time_intervals, vocab_embed, n_embed, tri_W):
         super().__init__()
 
@@ -54,6 +54,7 @@ class Block(nn.Module):
         self.ln1 = nn.LayerNorm(n_embed)
         self.ln2 = nn.LayerNorm(n_embed)
 
+    @jit.script_method
     def forward(self, x):
         B, T, E = x.shape
         x = self.ln1(x)
