@@ -7,7 +7,7 @@ torch.manual_seed(1337)
 scaler = torch.cuda.amp.GradScaler()
 
 batch_size = 64
-time_intervals = 300
+time_intervals = 384
 max_iter = 1000000
 eval_interval = 500
 learning_rate = 3e-5
@@ -46,7 +46,6 @@ torch.manual_seed(135665)
 
 
 def get_batch():
-    #var_time = random.randint(32, time_intervals)
     var_time = time_intervals
     ix = torch.randint(len(data) - var_time, (batch_size, ))
     x = torch.stack([data[i:i+var_time] for i in ix])
@@ -74,7 +73,7 @@ def estimate_loss():
 
 
 
-LLM = BigramLanguageModel(vocab_size, time_intervals, vocab_embed=800, n_embed=800, n_head=20, n_layers=20, device=device).to(device)
+LLM = BigramLanguageModel(vocab_size, time_intervals, vocab_embed=1024, n_embed=1024, n_layers=18, device=device).to(device)
 optimizer = torch.optim.Adam(LLM.parameters(), lr=learning_rate)
 
 pytorch_total_params = sum(p.numel() for p in LLM.parameters())
