@@ -1,8 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from einops import rearrange
-from einops.layers.torch import Rearrange
+import torch.jit as jit
 
 dropout = 0.1
 
@@ -21,47 +20,56 @@ def get_zero_grad_hook(mask):
     return hook
 
 
+class Sine(jit.ScriptModule):
+    def __init__(self):
+        super(Sine, self).__init__()
+
+    @jit.script_method
+    def forward(self, x):
+        return torch.sin(x)
 
 
 class Block(nn.Module):
-    def __init__(self, time_intervals, n_embed, n_head, tri_W):
+    def __init__(self, time_intervals, vocab_embed, n_embed, tri_W):
         super().__init__()
 
-        self.ffts = nn.Sequential(
-            Rearrange("B T (h E) -> B h E T", h = n_head),
+
+        self.fft = nn.Sequential(
             nn.Linear(time_intervals, time_intervals, bias=None),
-            Rearrange("B h E T -> B T (h E)", h = n_head)
+            nn.Linear(time_intervals, time_intervals, bias=None),
         )
 
         self.ffw = nn.Sequential(
-            nn.Linear(n_embed, n_embed),
-            nn.LeakyReLU(0.07),
-            nn.Linear(n_embed, n_embed),
-            nn.Dropout(dropout)
+            nn.Linear(n_embed, vocab_embed),
+            Sine(),
+            nn.Linear(vocab_embed, n_embed),
         )
 
-        self.ffts[1].apply(tril_init)
-        self.ffts[1].weight.register_hook(get_zero_grad_hook(tri_W))
+        self.fft[0].apply(tril_init)
+        self.fft[0].weight.register_hook(get_zero_grad_hook(tri_W))
+
+        self.fft[1].apply(tril_init)
+        self.fft[1].weight.register_hook(get_zero_grad_hook(tri_W))
 
         self.ln1 = nn.LayerNorm(n_embed)
         self.ln2 = nn.LayerNorm(n_embed)
 
-    def forward(self, input):
-        x = self.ln1(input)
-        x = x + self.ffts(x)
+    def forward(self, x):
+        B, T, E = x.shape
+        x = self.ln1(x)
+        x += self.fft(x.reshape(B, E, T)).reshape(B, T, E)
         x = self.ln2(x)
-        out = x + self.ffw(x)
-        return out
+        return x + self.ffw(x)
 
 
 
 
 class BigramLanguageModel(nn.Module):
-    def __init__(self, vocab_size, time_intervals, vocab_embed, n_embed, n_head, n_layers, device="cpu"):
+    def __init__(self, vocab_size, time_intervals, vocab_embed, n_embed, n_layers, device="cpu"):
         super().__init__()
         self.device = device
         self.token_embedding_table = nn.Embedding(vocab_size, vocab_embed)
-        #self.position_embedding_table = nn.Embedding(time_intervals, vocab_embed)
+        self.position_embedding_table = nn.Embedding(time_intervals, vocab_embed)
 
         self.ln_in = nn.LayerNorm(vocab_embed)
         self.uniform = nn.Linear(vocab_embed, n_embed)
@@ -69,7 +77,7 @@ class BigramLanguageModel(nn.Module):
         tri = torch.tril(torch.ones((time_intervals, time_intervals), dtype=torch.float32)).to(device)
         tri_W = tri/tri.sum(dim=1, keepdim=True)
 
-        self.blocks = nn.Sequential(*[Block(time_intervals, n_embed, n_head, tri_W.detach()) for _ in range(n_layers)])
+        self.blocks = nn.Sequential(*[Block(time_intervals, vocab_embed, n_embed, tri_W.detach()) for _ in range(n_layers)])
 
         
         self.ln_out = nn.LayerNorm(n_embed)
@@ -78,7 +86,6 @@ class BigramLanguageModel(nn.Module):
 
         self.time_intervals = time_intervals
 
-        self.cdist = torch.distributions.categorical
 
 
 
@@ -87,9 +94,9 @@ class BigramLanguageModel(nn.Module):
         B, T = idx.shape
 
             
-        x = self.token_embedding_table(idx) # B, T, E
-        #pos_emb = self.position_embedding_table(torch.arange(T, device=self.device))
-        #x = tok_emb + pos_emb
+        tok_emb = self.token_embedding_table(idx) # B, T, E
+        pos_emb = self.position_embedding_table(torch.arange(T, device=self.device))
+        x = tok_emb + pos_emb
 
         x = self.uniform(self.ln_in(x))
 
