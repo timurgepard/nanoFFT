@@ -73,7 +73,7 @@ def estimate_loss():
 
 
 
-LLM = BigramLanguageModel(vocab_size, time_intervals, vocab_embed=1024, n_embed=1024, n_layers=18, device=device).to(device)
+LLM = BigramLanguageModel(vocab_size, time_intervals, vocab_embed=768, n_embed=768, n_layers=12, device=device).to(device)
 optimizer = torch.optim.Adam(LLM.parameters(), lr=learning_rate)
 
 pytorch_total_params = sum(p.numel() for p in LLM.parameters())
@@ -140,5 +140,3 @@ print("###########################################")
 
 
 print(decode(LLM.generate(context, max_new_tokens=500)[0].tolist()))
-
-
